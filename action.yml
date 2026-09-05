@@ -558,16 +558,20 @@ runs:
             github_extras="$collapsed"$'\n\n'"$github_extras"
           fi
 
-          # Combine: changelog content + GitHub extras (New Contributors, Full Changelog)
+          # Combine: changelog content + GitHub extras (New Contributors, Full Changelog).
+          # Do not append `|| true` here: a failed `gh release create` (auth, API
+          # error, conflict) must fail the job. Packages/tags may already have
+          # been published; reporting success with a missing GitHub release is
+          # worse than a visible failure operators can retry.
           if [ -n "$changelog_notes" ]; then
             notes="$changelog_notes"
             if [ -n "$github_extras" ]; then
               notes="$notes"$'\n\n'"$github_extras"
             fi
-            echo "$notes" | gh release create "$tag" --notes-file - || true
+            echo "$notes" | gh release create "$tag" --notes-file -
           elif [ -n "$github_notes" ]; then
-            echo "$github_notes" | gh release create "$tag" --notes-file - || true
+            echo "$github_notes" | gh release create "$tag" --notes-file -
           else
-            gh release create "$tag" --notes "" || true
+            gh release create "$tag" --notes ""
           fi
         done
